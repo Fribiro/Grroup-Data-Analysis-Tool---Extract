@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from flask import Flask, render_template_string
 
 # Load your transaction data into a Pandas DataFrame
 data = pd.read_csv('transactions_within_saccos.csv')
@@ -35,19 +36,37 @@ fig.add_trace(go.Scatter(
 ))
 
 # Configure the button to trigger a download
-fig.update_layout(
-    updatemenus=[
-        dict(
-            type='buttons',  # or 'dropdown'
-            x=1.05,
-            y=0.9,
-            buttons=[dict(label='Download Excel', method='relayout', args=['template', 'download.xlsx'])]
-        )
-    ]
-)
+# fig.update_layout(
+#     updatemenus=[
+#         dict(
+#             type='buttons',  # or 'dropdown'
+#             x=1.05,
+#             y=0.9,
+#             buttons=[dict(label='Download Excel', method='relayout', args=['./transactions_within_saccos.csv', 'download_trans_analysis.xlsx'])]
+#         )
+#     ]
+# )
+# Create buttons for each Sacco to toggle visibility
+button_list = []
+sacco_names = grouped_data['Sacco'].unique()
 
-# Show the interactive plot
-fig.show()
+buttons_dropdown = [dict(label='Toggle All', method='update', args=[{'visible': [True] * len(sacco_names)}])]
+buttons_dropdown += [dict(label=selected_sacco, method='update', args=[{'visible': [True if sacco == selected_sacco else 'legendonly' for sacco in sacco_names]}]) for selected_sacco in sacco_names]
 
-# Save the data to an Excel file
-grouped_data.to_excel('download.xlsx', index=False)
+# Add buttons_dropdown to updatemenus list
+fig.update_layout(updatemenus=[
+    dict(type='dropdown', direction='down', showactive=True, x=1.05, y=1.0, buttons=buttons_dropdown),
+])
+# fig.show()
+
+# # Save the data to an Excel file
+# grouped_data.to_excel('download.xlsx', index=False)
+# Flask App
+app = Flask(__name__)
+
+@app.route('/')
+def plot():
+    return render_template_string(fig.to_html())
+
+if __name__ == '__main__':
+    app.run(port=6600)  # Change the port number as needed
