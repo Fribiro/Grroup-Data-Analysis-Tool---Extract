@@ -24,7 +24,7 @@ fig = px.line(grouped_data, x='hour', y='transactionAmount', color='tenantName',
 # Add a download button for Excel format
 fig.add_trace(go.Scatter(
     x=[0],
-    y=[0],
+    y=[0.5],
     mode='text',
     text=['Download Excel'],
     showlegend=False,
